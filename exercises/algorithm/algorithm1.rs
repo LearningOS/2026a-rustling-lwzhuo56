@@ -2,11 +2,8 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
-
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -70,13 +67,43 @@ impl<T> LinkedList<T> {
         }
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+	where T: PartialOrd,
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
-        }
+		// Collect values from both lists, then merge two ordered sequences.
+		let mut a = list_a.into_vec();
+		let mut b = list_b.into_vec();
+		a.reverse();
+		b.reverse();
+		let mut merged = Self::new();
+		loop {
+			match (a.last(), b.last()) {
+				(Some(x), Some(y)) => {
+					if x <= y {
+						merged.add(a.pop().unwrap());
+					} else {
+						merged.add(b.pop().unwrap());
+					}
+				}
+				(Some(_), None) => merged.add(a.pop().unwrap()),
+				(None, Some(_)) => merged.add(b.pop().unwrap()),
+				(None, None) => break,
+			}
+		}
+		merged
+	}
+
+	// Consume the list and return its values in order (from start to end).
+	fn into_vec(self) -> Vec<T> {
+		let mut values = Vec::with_capacity(self.length as usize);
+		let mut current = self.start;
+		while let Some(ptr) = current {
+			unsafe {
+				let node = Box::from_raw(ptr.as_ptr());
+				current = node.next;
+				values.push(node.val);
+			}
+		}
+		values
 	}
 }
 
